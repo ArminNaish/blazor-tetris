@@ -1,11 +1,26 @@
+@inherits Fluxor.Blazor.Web.Components.FluxorComponent
+
 <h1>Tetris</h1>
 
-<h3>Score: <span id="score">0</span></h3>
-<button id="start-button">start/pause</button>
+@if (State.Value.IsLoading)
+{
+    <span>Loading...</span>
+}
+else if (State.Value.HasErrors)
+{
+    <span>Whoops! Looks like an issue occurred loading todos :(</span>
+}
+else if (State.Value.IsInitialized)
+{
+    <h3>Score: <span id="score">0</span></h3>
+    <button id="start-button">start/pause</button>
 
-<div class="grid">
-    @foreach (var square in Game.Squares)
-    {
-        <div class="@(square.IsTetromino ? "tetromino" : "") @(square.IsTaken ? "taken" : "")">@square.Index</div>
-    }
-</div>
+    <div class="grid">
+        @foreach (var square in State.Value.Squares!)
+        {
+            <div class="@(square.IsTetromino ? "tetromino" : "") @(square.IsTaken ? "taken" : "")">@square.Index</div>
+        }
+    </div>
+}
+
+
