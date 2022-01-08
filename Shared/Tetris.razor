@@ -1,0 +1,11 @@
+<h1>Tetris</h1>
+
+<h3>Score: <span id="score">0</span></h3>
+<button id="start-button">start/pause</button>
+
+<div class="grid">
+    @foreach (var square in Squares)
+    {
+        <div class="@(square.IsTetromino ? "tetromino" : "") @(square.IsTaken ? "taken" : "")">@square.Index</div>
+    }
+</div>
