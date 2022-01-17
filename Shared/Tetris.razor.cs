@@ -1,59 +1,47 @@
-using BlazorTetris.Domain;
-using BlazorTetris.Services;
 using Microsoft.AspNetCore.Components;
-using BlazorTetris.Store;
-using BlazorTetris.Services;
 using BlazorTetris.Store.Game;
 using Fluxor;
 
 namespace BlazorTetris.Shared;
 
-public partial class Tetris //: IDisposable
+public partial class Tetris : IDisposable
 {
-    [Inject] private IState<GameState> State { get; set; }
-    [Inject] private IDispatcher Dispatcher { get; set; }
+    [Inject] private IState<GameState> State { get; set; } = null!;
+    [Inject] private IDispatcher Dispatcher { get; set; } = null!;
 
-    // todo: replace Game with fluxor states
-    // todo: add initialize feature
-    // todo: add draw feature
-    // todo: add movedown feature
-    
-    //private Game Game { get; } = new();
-    
-    protected override void OnInitialized()
+    private readonly int _width = 10;
+    private PeriodicTimer? _timer;
+
+    protected async override Task OnInitializedAsync()
     {
-        if (State.Value.Squares is null)
-        {
-            Dispatcher.Dispatch(new InitializeGameAction());
-        }
-        
         // Because we’ve inherited from a FluxorComponent, when we call OnInitialized(), our component subscribes to
         // state changes of the injected state type (GameState in our case), and when a new state is set
         // (from reducers producing a new state on an issued action), Blazor’s built in StateHasChanged()
         // is called for us, forcing components to re-render their markup accordingly.
         base.OnInitialized();
-        
-        
-        //Game.OnStateChanged += StateChanged;
-        //Game.Initialize();
+
+        if (State.Value.Game is null)
+        {
+            Dispatcher.Dispatch(new InitializeGameAction { Width = _width});
+            Console.WriteLine("Dispatched InitializeGameAction");
+        }
+
+        _timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+
+        while (await _timer.WaitForNextTickAsync())
+        {
+            if (State.Value.Game is not null) 
+            {
+                Dispatcher.Dispatch(new RenderGameAction { Width = _width});
+            }
+        }
     }
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override void Dispose(bool disposing)
     {
-        if (!firstRender) return;
+         // Breaks the while loop and stops the timer
+        _timer?.Dispose();
         
-        //Game.Draw();
-        // todo: call base
+        base.Dispose(disposing);
     }
-
-    //private void StateChanged()
-    //{
-      //  StateHasChanged();
-    //}
-
-    //public void Dispose()
-    //{
-        //Game.OnStateChanged -= StateChanged;
-        //Game.Dispose();
-    //}
 }

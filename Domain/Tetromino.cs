@@ -15,7 +15,7 @@ public abstract record Tetromino
     public static Tetromino T(int width, RotationType rotation = RotationType.Up) => TTetromino.Of(width, rotation);
     public static Tetromino O(int width, RotationType rotation = RotationType.Up) => OTetromino.Of(width, rotation);
     public static Tetromino I(int width, RotationType rotation = RotationType.Up) => ITetromino.Of(width, rotation);
-    
+
     public Tetromino Rotate(RotationType rotation)
     {
         return rotation switch
@@ -26,6 +26,11 @@ public abstract record Tetromino
             RotationType.Left => this with {Rotation = Left},
             _ => throw new NotSupportedException("Rotation is not supported.")
         };
+    }
+
+    public bool HasIndex(int index)
+    {
+        return GetIndizes().Contains(index);
     }
 
     public IEnumerable<int> GetIndizes()

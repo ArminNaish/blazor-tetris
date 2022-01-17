@@ -1,5 +1,6 @@
 namespace BlazorTetris.Domain;
 
+/*
 public sealed class Game : IDisposable
 {
     public delegate void StateChangedEventHandler();
@@ -121,3 +122,4 @@ public sealed class Game : IDisposable
         }
     }
 }
+*/

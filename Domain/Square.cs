@@ -1,8 +1,8 @@
 namespace BlazorTetris.Domain;
 
-public class Square
+public record Square
 {
-    public int Index { get; set; }
-    public bool IsTetromino { get; set; }
-    public bool IsTaken { get; set; }
+    public int Index { get; init; }
+    public bool IsTetromino { get; init; }
+    public bool IsTaken { get; init; }
 }

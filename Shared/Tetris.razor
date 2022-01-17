@@ -2,25 +2,19 @@
 
 <h1>Tetris</h1>
 
-@if (State.Value.IsLoading)
+@if (State.Value.Game is null)
 {
     <span>Loading...</span>
 }
-else if (State.Value.HasErrors)
-{
-    <span>Whoops! Looks like an issue occurred loading todos :(</span>
-}
-else if (State.Value.IsInitialized)
+else
 {
     <h3>Score: <span id="score">0</span></h3>
     <button id="start-button">start/pause</button>
 
     <div class="grid">
-        @foreach (var square in State.Value.Squares!)
+        @foreach (var square in State.Value.Game.Squares!)
         {
             <div class="@(square.IsTetromino ? "tetromino" : "") @(square.IsTaken ? "taken" : "")">@square.Index</div>
         }
     </div>
 }
-
-
