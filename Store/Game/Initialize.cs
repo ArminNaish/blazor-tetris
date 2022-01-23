@@ -7,6 +7,7 @@ namespace BlazorTetris.Store.Game;
 public record InitializeGameAction
 {
     public int Width { get; init; }
+    public int Position { get; init; }
 }
 
 public static class InitializeGameActionsReducer
@@ -14,27 +15,32 @@ public static class InitializeGameActionsReducer
     [ReducerMethod]
     public static GameState ReduceInitializeGameAction(GameState state, InitializeGameAction action)
     {
-        var defaultPosition = 4;
-        var defaultRotation = 0;
+        var random = new Random();
+        var currentPosition = 4;
 
         var tetrominos = new List<Tetromino>
         {
-            Tetromino.L(action.Width),
-            Tetromino.Z(action.Width),
-            Tetromino.T(action.Width),
-            Tetromino.O(action.Width),
-            Tetromino.I(action.Width)
+            LTetromino.Up(action.Width),
+            ZTetromino.Up(action.Width),
+            TTetromino.Up(action.Width),
+            OTetromino.Up(action.Width),
+            ITetromino.Up(action.Width),
         };
-
-        var random = new Random();
+        
         var currentTetromino = tetrominos[random.Next(0, tetrominos.Count)];
+        var currentIndizes = new []{
+            currentTetromino.I1, 
+            currentTetromino.I2, 
+            currentTetromino.I3, 
+            currentTetromino.I4
+        }; 
 
         var squares = Enumerable
             .Range(0, 200)
-            .Select(index => new Square 
+            .Select(index => new Square
             {
-                Index = index, 
-                IsTetromino = currentTetromino.HasIndex(index - defaultPosition)
+                Index = index,
+                IsTetromino = currentIndizes.Contains(index - currentPosition)
             })
             .ToList();
 
@@ -49,10 +55,8 @@ public static class InitializeGameActionsReducer
             Game = new GameState.State
             {
                 Squares = new ReadOnlyCollection<Square>(squares),
-                Tetrominos = new ReadOnlyCollection<Tetromino>(tetrominos),
                 CurrentTetromino = currentTetromino,
-                CurrentPosition = defaultPosition,
-                CurrentRotation = defaultRotation
+                CurrentPosition = currentPosition
             }
         };
     }

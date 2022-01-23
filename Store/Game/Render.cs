@@ -12,34 +12,50 @@ public static class RenderGameActionsReducer
     [ReducerMethod]
     public static GameState ReduceRenderGameAction(GameState state, RenderGameAction action)
     {
-        var squares = state.Game!.Squares.ToList();
+        var squares = state.Game!.Squares;/*.ToList();*/
         var currentTetromino = state.Game!.CurrentTetromino;
         var currentPosition = state.Game!.CurrentPosition;
+        var currentIndizes = new []{
+            currentTetromino.I1, 
+            currentTetromino.I2, 
+            currentTetromino.I3, 
+            currentTetromino.I4
+        }; 
 
         // undraw tetromino at current position
         squares = squares
-            .Select(square => currentTetromino.HasIndex(square.Index - currentPosition)
-                ? square with { IsTetromino = false }
-                : square)
+            .Select(square => 
+                currentIndizes.Contains(square.Index - currentPosition)
+                    ? square with { IsTetromino = false }
+                    : square)
             .ToList();
 
-        // update position
-        var nextPosition = currentPosition + action.Width;
+        currentPosition = currentPosition + action.Width;
 
         // draw tetromino at next position
         squares = squares
-            .Select(square => currentTetromino.HasIndex(square.Index - nextPosition)
-                ? square with { IsTetromino = true }
-                : square)
+            .Select(square =>
+               currentIndizes.Contains(square.Index - currentPosition)
+                    ? square with { IsTetromino = true }
+                    : square)
             .ToList();
       
         return state with
         {
             Game = state.Game with
             {
-                CurrentPosition = nextPosition,
-                Squares = squares
+                Squares = squares,
+                CurrentPosition = currentPosition
             }
         };
+    }
+}
+
+public class RenderGameEffect : Effect<RenderGameAction>
+{
+    public override Task HandleAsync(RenderGameAction action, IDispatcher dispatcher)
+    {
+        dispatcher.Dispatch(new CheckCollisionAction{Width = action.Width});
+        return Task.CompletedTask;
     }
 }

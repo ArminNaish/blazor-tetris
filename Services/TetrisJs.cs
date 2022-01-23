@@ -18,25 +18,25 @@ public class TetrisJs : ITetrisJs, IAsyncDisposable
         _module = await _js.InvokeAsync<IJSObjectReference>("import", new object[]{"./js/tetris.js"});
     }
 
-    public async Task DrawAsync(Tetromino tetromino, int position)
-    {
-        if (_module is not null)
-        {
-            var (i1, i2, i3, i4) = tetromino.Rotation;
-            var indizes = new[] {i1, i2, i3, i4};
-            await _module.InvokeVoidAsync("draw", indizes , position);
-        }
-    }
+    // public async Task DrawAsync(Tetromino tetromino, int position)
+    // {
+    //     if (_module is not null)
+    //     {
+    //         var (i1, i2, i3, i4) = tetromino.Rotation;
+    //         var indizes = new[] {i1, i2, i3, i4};
+    //         await _module.InvokeVoidAsync("draw", indizes , position);
+    //     }
+    // }
 
-    public async Task UndrawAsync(Tetromino tetromino, int position)
-    {
-        if (_module is not null)
-        {
-            var (i1, i2, i3, i4) = tetromino.Rotation;
-            var indizes = new[] {i1, i2, i3, i4};
-            await _module.InvokeVoidAsync("undraw", indizes, position);
-        }
-    }
+    // public async Task UndrawAsync(Tetromino tetromino, int position)
+    // {
+    //     if (_module is not null)
+    //     {
+    //         var (i1, i2, i3, i4) = tetromino.Rotation;
+    //         var indizes = new[] {i1, i2, i3, i4};
+    //         await _module.InvokeVoidAsync("undraw", indizes, position);
+    //     }
+    // }
 
     public async ValueTask DisposeAsync()
     {
