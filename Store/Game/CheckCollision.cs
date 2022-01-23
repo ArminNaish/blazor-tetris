@@ -8,6 +8,9 @@ public record CheckCollisionAction
     public int Width { get; init; }
 }
 
+// TODO: how to share code between reducers? --> use 
+//https://redux.js.org/usage/structuring-reducers/reusing-reducer-logic
+
 public static class CheckCollisionActionReducer
 {
     [ReducerMethod]
@@ -17,15 +20,14 @@ public static class CheckCollisionActionReducer
         var currentTetromino = state.Game!.CurrentTetromino;
         var currentPosition = state.Game!.CurrentPosition;
         var currentIndizes = new []{
-            currentTetromino.I1, 
-            currentTetromino.I2, 
-            currentTetromino.I3, 
-            currentTetromino.I4
+            currentTetromino.I1 + currentPosition, 
+            currentTetromino.I2 + currentPosition, 
+            currentTetromino.I3 + currentPosition, 
+            currentTetromino.I4 + currentPosition
         }; 
 
-        // todo: fix this broken feature
         var takenSquaresAhead = squares
-            .Where(square => currentIndizes.Contains(square.Index - currentPosition + action.Width))
+            .Where(square => currentIndizes.Any(i => i + action.Width == square.Index ))
             .Any(square => square.IsTaken);
 
         if (!takenSquaresAhead)
@@ -33,12 +35,12 @@ public static class CheckCollisionActionReducer
 
         squares = squares
             .Select(square =>
-                currentIndizes.Contains(square.Index - currentPosition)
+                currentIndizes.Contains(square.Index)
                     ? square with { IsTaken = true }
                     : square)
             .ToList();
 
-
+        // Draw a new tetromino at the top
         var tetrominos = new List<Tetromino>
         {
             LTetromino.Up(action.Width),
@@ -50,9 +52,18 @@ public static class CheckCollisionActionReducer
         var random = new Random();
         currentTetromino = tetrominos[random.Next(0, tetrominos.Count)];
 
+        currentPosition = 4;
+
+        currentIndizes = new []{
+            currentTetromino.I1 + currentPosition, 
+            currentTetromino.I2 + currentPosition, 
+            currentTetromino.I3 + currentPosition, 
+            currentTetromino.I4 + currentPosition
+        }; 
+
         squares = squares
             .Select(square =>  
-                currentIndizes.Contains(square.Index - currentPosition)
+                currentIndizes.Contains(square.Index)
                     ? square with { IsTetromino = true }
                     : square)
             .ToList();
@@ -63,6 +74,7 @@ public static class CheckCollisionActionReducer
             {
                 Squares = squares,
                 CurrentTetromino = currentTetromino,
+                CurrentPosition = currentPosition
             }
         };
     }

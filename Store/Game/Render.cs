@@ -16,26 +16,32 @@ public static class RenderGameActionsReducer
         var currentTetromino = state.Game!.CurrentTetromino;
         var currentPosition = state.Game!.CurrentPosition;
         var currentIndizes = new []{
-            currentTetromino.I1, 
-            currentTetromino.I2, 
-            currentTetromino.I3, 
-            currentTetromino.I4
+            currentTetromino.I1 + currentPosition, 
+            currentTetromino.I2 + currentPosition, 
+            currentTetromino.I3 + currentPosition, 
+            currentTetromino.I4 + currentPosition
         }; 
 
         // undraw tetromino at current position
         squares = squares
             .Select(square => 
-                currentIndizes.Contains(square.Index - currentPosition)
+                currentIndizes.Contains(square.Index)
                     ? square with { IsTetromino = false }
                     : square)
             .ToList();
 
         currentPosition = currentPosition + action.Width;
+        currentIndizes = new []{
+            currentTetromino.I1 + currentPosition, 
+            currentTetromino.I2 + currentPosition, 
+            currentTetromino.I3 + currentPosition, 
+            currentTetromino.I4 + currentPosition
+        }; 
 
         // draw tetromino at next position
         squares = squares
             .Select(square =>
-               currentIndizes.Contains(square.Index - currentPosition)
+               currentIndizes.Contains(square.Index)
                     ? square with { IsTetromino = true }
                     : square)
             .ToList();
