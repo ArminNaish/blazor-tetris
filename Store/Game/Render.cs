@@ -2,58 +2,21 @@ using Fluxor;
 
 namespace BlazorTetris.Store.Game;
 
-public record RenderGameAction
-{
-    public int Width { get; init; }
-}
+public record RenderGameAction { }
 
 public static class RenderGameActionsReducer
 {
     [ReducerMethod]
-    public static GameState ReduceRenderGameAction(GameState state, RenderGameAction action)
+    public static GameState OnRenderGame(GameState state, RenderGameAction action)
     {
-        var squares = state.Game!.Squares;/*.ToList();*/
-        var currentTetromino = state.Game!.CurrentTetromino;
-        var currentPosition = state.Game!.CurrentPosition;
-        var currentIndizes = new []{
-            currentTetromino.I1 + currentPosition, 
-            currentTetromino.I2 + currentPosition, 
-            currentTetromino.I3 + currentPosition, 
-            currentTetromino.I4 + currentPosition
-        }; 
+        if (state.Game is null) throw new ArgumentNullException(nameof(state));
 
-        // undraw tetromino at current position
-        squares = squares
-            .Select(square => 
-                currentIndizes.Contains(square.Index)
-                    ? square with { IsTetromino = false }
-                    : square)
-            .ToList();
+        var gameState = state.Game
+            .UndrawCurrentTetromino()
+            .MoveToNextLine()
+            .DrawCurrentTetromino();
 
-        currentPosition = currentPosition + action.Width;
-        currentIndizes = new []{
-            currentTetromino.I1 + currentPosition, 
-            currentTetromino.I2 + currentPosition, 
-            currentTetromino.I3 + currentPosition, 
-            currentTetromino.I4 + currentPosition
-        }; 
-
-        // draw tetromino at next position
-        squares = squares
-            .Select(square =>
-               currentIndizes.Contains(square.Index)
-                    ? square with { IsTetromino = true }
-                    : square)
-            .ToList();
-      
-        return state with
-        {
-            Game = state.Game with
-            {
-                Squares = squares,
-                CurrentPosition = currentPosition
-            }
-        };
+        return state with { Game = gameState };
     }
 }
 
@@ -61,7 +24,7 @@ public class RenderGameEffect : Effect<RenderGameAction>
 {
     public override Task HandleAsync(RenderGameAction action, IDispatcher dispatcher)
     {
-        dispatcher.Dispatch(new CheckCollisionAction{Width = action.Width});
+        dispatcher.Dispatch(new CheckCollisionAction { });
         return Task.CompletedTask;
     }
 }

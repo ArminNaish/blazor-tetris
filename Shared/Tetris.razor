@@ -14,7 +14,7 @@ else
     <div class="grid">
         @foreach (var square in State.Value.Game.Squares!)
         {
-            <div class="@(square.IsTetromino ? "tetromino" : "") @(square.IsTaken ? "taken" : "")">@square.Index</div>
+            <div class="@(square.IsTetromino ? "tetromino" : "") @(square.IsFrozen ? "frozen" : "")">@square.Index</div>
         }
     </div>
 }

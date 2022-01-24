@@ -9,7 +9,6 @@ public partial class Tetris : IDisposable
     [Inject] private IState<GameState> State { get; set; } = null!;
     [Inject] private IDispatcher Dispatcher { get; set; } = null!;
 
-    private readonly int _width = 10;
     private PeriodicTimer? _timer;
 
     protected async override Task OnInitializedAsync()
@@ -22,8 +21,7 @@ public partial class Tetris : IDisposable
 
         if (State.Value.Game is null)
         {
-            Dispatcher.Dispatch(new InitializeGameAction { Width = _width});
-            Console.WriteLine("Dispatched InitializeGameAction");
+            Dispatcher.Dispatch(new InitializeGameAction { });
         }
 
         _timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
@@ -32,7 +30,7 @@ public partial class Tetris : IDisposable
         {
             if (State.Value.Game is not null) 
             {
-                Dispatcher.Dispatch(new RenderGameAction { Width = _width});
+                Dispatcher.Dispatch(new RenderGameAction { });
             }
         }
     }
