@@ -4,9 +4,6 @@ namespace BlazorTetris.Store.Game;
 
 public static class Reducer
 {
-    private static readonly int _defaultPosition = 4;
-    private static readonly int _width = 10;
-
     public static GameState.State GetSquares(this GameState.State state)
     {
         var squares = Enumerable
@@ -22,25 +19,29 @@ public static class Reducer
         return state with { CurrentPosition = position };
     }
 
-    public static GameState.State SetDefaultPosition(this GameState.State state)
+    public static GameState.State Initialize(this GameState.State state)
     {
-        return state with { CurrentPosition = _defaultPosition };
+        return state with 
+        {
+             CurrentPosition = 4,
+             Width = 10
+        };
     }
 
     public static GameState.State MoveToNextLine(this GameState.State state)
     {
-        return state.SetCurrentPosition(state.CurrentPosition + _width);
+        return state.SetCurrentPosition(state.CurrentPosition + state.Width);
     }
 
     public static GameState.State GetNewTetromino(this GameState.State state)
     {
         var tetrominos = new List<Tetromino>
         {
-            LTetromino.Up(_width),
-            ZTetromino.Up(_width),
-            TTetromino.Up(_width),
-            OTetromino.Up(_width),
-            ITetromino.Up(_width),
+            LTetromino.Up(state.Width),
+            ZTetromino.Up(state.Width),
+            TTetromino.Up(state.Width),
+            OTetromino.Up(state.Width),
+            ITetromino.Up(state.Width),
         };
         var random = new Random();
         var currentTetromino = tetrominos[random.Next(0, tetrominos.Count)];
@@ -111,19 +112,5 @@ public static class Reducer
         {
             Squares = squares,
         };  
-    }
-
-    public static bool FrozenTetrominoAhead(this GameState.State state)
-    {
-        var currentIndizes = new[]{
-            state.CurrentTetromino.I1 + state.CurrentPosition,
-            state.CurrentTetromino.I2 + state.CurrentPosition,
-            state.CurrentTetromino.I3 + state.CurrentPosition,
-            state.CurrentTetromino.I4 + state.CurrentPosition
-        };
-
-        return state.Squares
-            .Where(square => currentIndizes.Any(index => index + _width == square.Index))
-            .Any(square => square.IsFrozen);
     }
 }

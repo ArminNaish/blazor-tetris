@@ -12,6 +12,7 @@ public record GameState : RootState
         public Tetromino CurrentTetromino { get; init; } = null!;
         public int CurrentPosition { get; init; }
         public int CurrentRotation { get; init; }
+        public int Width{ get; init; }
     }
 }
 

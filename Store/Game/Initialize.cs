@@ -10,7 +10,7 @@ public static class InitializeGameActionsReducer
     public static GameState OnInitializeGame(GameState state, InitializeGameAction action)
     {
         var gameState = new GameState.State()
-            .SetDefaultPosition()
+            .Initialize()
             .GetNewTetromino()
             .GetSquares()
             .DrawCurrentTetromino();
