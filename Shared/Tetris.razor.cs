@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using BlazorTetris.Store.Game;
 using Fluxor;
+using Microsoft.JSInterop;
+using BlazorTetris.Services;
 
 namespace BlazorTetris.Shared;
 
@@ -8,6 +10,7 @@ public partial class Tetris : IDisposable
 {
     [Inject] private IState<GameState> State { get; set; } = null!;
     [Inject] private IDispatcher Dispatcher { get; set; } = null!;
+    [Inject] private ITetrisJs TetrisJs { get; set; } = null!;
 
     private PeriodicTimer? _timer;
 
@@ -17,7 +20,7 @@ public partial class Tetris : IDisposable
         // state changes of the injected state type (GameState in our case), and when a new state is set
         // (from reducers producing a new state on an issued action), Blazor’s built in StateHasChanged()
         // is called for us, forcing components to re-render their markup accordingly.
-        base.OnInitialized();
+        await base.OnInitializedAsync();
 
         if (State.Value.Game is null)
         {
@@ -35,10 +38,25 @@ public partial class Tetris : IDisposable
         }
     }
 
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            await TetrisJs.AddKeyUpEventListener(OnKeyUp);
+        }
+    }
+
+    public void OnKeyUp(string key)
+    {
+        if (State.Value.Game is null) return;
+        Console.WriteLine($"I was pressed: {key}");
+    } 
+
     protected override void Dispose(bool disposing)
     {
-         // Breaks the while loop and stops the timer
-        _timer?.Dispose();
+        TetrisJs.Dispose();
+        _timer?.Dispose(); // Breaks the while loop and stops the timer
         
         base.Dispose(disposing);
     }

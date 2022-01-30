@@ -1,47 +1,35 @@
-using BlazorTetris.Domain;
 using Microsoft.JSInterop;
 
 namespace BlazorTetris.Services;
 
-public class TetrisJs : ITetrisJs, IAsyncDisposable
+public class TetrisJs : ITetrisJs
 {
     private readonly IJSRuntime _js;
-    private IJSObjectReference? _module;
+    private Action<string>? _onKeyUp;
+    private DotNetObjectReference<TetrisJs>? _reference;
 
     public TetrisJs(IJSRuntime js)
     {
         _js = js;
     }
 
-    public async Task ImportAsync()
+    public async Task AddKeyUpEventListener(Action<string> onKeyUp)
     {
-        _module = await _js.InvokeAsync<IJSObjectReference>("import", new object[]{"./js/tetris.js"});
+        if (_reference is not null) return;
+
+        _onKeyUp = onKeyUp;
+        _reference = DotNetObjectReference.Create(this);
+        await _js.InvokeVoidAsync("addKeyUpEventListener", _reference);
     }
 
-    // public async Task DrawAsync(Tetromino tetromino, int position)
-    // {
-    //     if (_module is not null)
-    //     {
-    //         var (i1, i2, i3, i4) = tetromino.Rotation;
-    //         var indizes = new[] {i1, i2, i3, i4};
-    //         await _module.InvokeVoidAsync("draw", indizes , position);
-    //     }
-    // }
-
-    // public async Task UndrawAsync(Tetromino tetromino, int position)
-    // {
-    //     if (_module is not null)
-    //     {
-    //         var (i1, i2, i3, i4) = tetromino.Rotation;
-    //         var indizes = new[] {i1, i2, i3, i4};
-    //         await _module.InvokeVoidAsync("undraw", indizes, position);
-    //     }
-    // }
-
-    public async ValueTask DisposeAsync()
+    [JSInvokable]
+    public void OnKeyUp(string key)
     {
-        if (_module is not null) {
-            await _module.DisposeAsync();
-        }
+        _onKeyUp?.Invoke(key);
+    } 
+
+    public void Dispose()
+    {
+        _reference?.Dispose();
     }
 }
