@@ -11,9 +11,8 @@ public static class InitializeGameActionsReducer
     {
         var gameState = new GameState.State()
             .Initialize()
-            .GetNewTetromino()
-            .GetSquares()
-            .DrawCurrentTetromino();
+            .Squares()
+            .Draw();
 
         return state with { Game = gameState };
     }

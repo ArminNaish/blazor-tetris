@@ -12,9 +12,9 @@ public static class RenderGameActionsReducer
         if (state.Game is null) throw new ArgumentNullException(nameof(state));
 
         var gameState = state.Game
-            .UndrawCurrentTetromino()
-            .MoveToNextLine()
-            .DrawCurrentTetromino();
+            .Undraw()
+            .MoveDown()
+            .Draw();
 
         return state with { Game = gameState };
     }

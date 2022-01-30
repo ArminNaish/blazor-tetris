@@ -50,7 +50,11 @@ public partial class Tetris : IDisposable
     public void OnKeyUp(string key)
     {
         if (State.Value.Game is null) return;
-        Console.WriteLine($"I was pressed: {key}");
+        if (key == "ArrowLeft")
+        {
+            Dispatcher.Dispatch(new MoveTetrominoAction{Direction = Direction.Left});
+        }
+        // todo: add moveright
     } 
 
     protected override void Dispose(bool disposing)

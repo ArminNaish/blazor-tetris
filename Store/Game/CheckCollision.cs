@@ -11,7 +11,6 @@ public static class CheckCollisionActionReducer
     {
         if (state.Game is null) throw new ArgumentNullException(nameof(state));
 
-
         var currentIndizes = new[]{
             state.Game.CurrentTetromino.I1 + state.Game.CurrentPosition,
             state.Game.CurrentTetromino.I2 + state.Game.CurrentPosition,
@@ -26,11 +25,10 @@ public static class CheckCollisionActionReducer
         if (!frozenTetrominoesAhead)
             return state;
 
-        var gameState = state.Game!
-            .FreezeCurrentTetromino()
-            .GetNewTetromino()
+        var gameState = state.Game
+            .Freeze()
             .Initialize()
-            .DrawCurrentTetromino();
+            .Draw();
 
         return state with { Game = gameState };
     }
