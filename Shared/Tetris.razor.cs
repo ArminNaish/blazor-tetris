@@ -59,7 +59,6 @@ public partial class Tetris : IDisposable
 
     protected override void Dispose(bool disposing)
     {
-        TetrisJs.Dispose();
         _timer?.Dispose(); // Breaks the while loop and stops the timer
         
         base.Dispose(disposing);
