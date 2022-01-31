@@ -31,7 +31,7 @@ public partial class Tetris : IDisposable
 
         while (await _timer.WaitForNextTickAsync())
         {
-            if (State.Value.Game is not null) 
+            if (State.Value.Game is not null)
             {
                 Dispatcher.Dispatch(new RenderGameAction { });
             }
@@ -47,20 +47,18 @@ public partial class Tetris : IDisposable
         }
     }
 
-    public void OnKeyUp(string key)
+    public void OnKeyUp(int key)
     {
         if (State.Value.Game is null) return;
-        if (key == "ArrowLeft")
-        {
-            Dispatcher.Dispatch(new MoveTetrominoAction{Direction = Direction.Left});
-        }
-        // todo: add moveright
-    } 
+        if (!Enum.IsDefined(typeof(Direction), key)) return;
+
+        Dispatcher.Dispatch(new MoveTetrominoAction { Direction = (Direction)key });
+    }
 
     protected override void Dispose(bool disposing)
     {
         _timer?.Dispose(); // Breaks the while loop and stops the timer
-        
+
         base.Dispose(disposing);
     }
 }

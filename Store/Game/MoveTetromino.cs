@@ -2,7 +2,13 @@ using Fluxor;
 
 namespace BlazorTetris.Store.Game;
 
-public enum Direction{Left, Right, Top, Down}
+public enum Direction : int
+{
+    Left = 37,
+    Up = 38,
+    Right = 39,
+    Down = 40
+}
 
 public record MoveTetrominoAction{ 
     public Direction Direction{get; init;}

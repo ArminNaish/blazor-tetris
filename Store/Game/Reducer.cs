@@ -38,7 +38,6 @@ public static class Reducer
         };
     }
 
-
     public static GameState.State Draw(this GameState.State state)
     {
         var currentIndizes = new[]{
@@ -63,10 +62,12 @@ public static class Reducer
 
     public static GameState.State Move(this GameState.State state, Direction direction)
     {
-        
         return direction switch 
         {
             Direction.Left => state.MoveLeft(),
+            Direction.Up => state.Rotate(),
+            Direction.Right => state.MoveRight(),
+            Direction.Down => state.MoveDown(),
             _ => throw new NotSupportedException("Direction is not supported.")
         }; 
     }
@@ -88,27 +89,32 @@ public static class Reducer
         return state with { CurrentPosition = state.CurrentPosition - 1 };
     }
 
+    public static GameState.State Rotate(this GameState.State state)
+    {
+        return state;
+    }
+
     public static GameState.State MoveRight(this GameState.State state)
     {
-        var currentIndizes = new[]{
-            state.CurrentTetromino.I1 + state.CurrentPosition,
-            state.CurrentTetromino.I2 + state.CurrentPosition,
-            state.CurrentTetromino.I3 + state.CurrentPosition,
-            state.CurrentTetromino.I4 + state.CurrentPosition
+        var nextPosition = state.CurrentPosition + 1;
+        var nextIndizes = new[]{
+            state.CurrentTetromino.I1 + nextPosition,
+            state.CurrentTetromino.I2 + nextPosition,
+            state.CurrentTetromino.I3 + nextPosition,
+            state.CurrentTetromino.I4 + nextPosition
         };
 
         // Check if tetromino touches the left border.
         // If so do not update the current position.
-        if (currentIndizes.Any(index => index % 10 == 0))
+        if (nextIndizes.Any(index => index % 10 == 0))
             return state; 
 
-        return state with { CurrentPosition = state.CurrentPosition + 1 };
+        return state with { CurrentPosition = nextPosition };
     }
 
     public static GameState.State MoveDown(this GameState.State state)
     {
         return state with { CurrentPosition = state.CurrentPosition + state.Width };
-
     }
 
     public static GameState.State Undraw(this GameState.State state)
