@@ -1,14 +1,7 @@
+using BlazorTetris.Domain;
 using Fluxor;
 
 namespace BlazorTetris.Store.Game;
-
-public enum Direction : int
-{
-    Left = 37,
-    Up = 38,
-    Right = 39,
-    Down = 40
-}
 
 public record MoveTetrominoAction{ 
     public Direction Direction{get; init;}
@@ -24,7 +17,8 @@ public static class MoveTetrominoActionsReducer
         var gameState  = state.Game
             .Undraw()
             .Move(action.Direction)
-            .Draw();
+            .Draw()
+            .CheckCollision();
 
         return state with { Game = gameState };
     }

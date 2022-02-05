@@ -3,6 +3,7 @@ using BlazorTetris.Store.Game;
 using Fluxor;
 using Microsoft.JSInterop;
 using BlazorTetris.Services;
+using BlazorTetris.Domain;
 
 namespace BlazorTetris.Shared;
 

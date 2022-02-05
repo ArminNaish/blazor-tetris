@@ -14,17 +14,10 @@ public static class RenderGameActionsReducer
         var gameState = state.Game
             .Undraw()
             .MoveDown()
-            .Draw();
-
+            .Draw()
+            .CheckCollision();
+  
         return state with { Game = gameState };
     }
 }
 
-public class RenderGameEffect : Effect<RenderGameAction>
-{
-    public override Task HandleAsync(RenderGameAction action, IDispatcher dispatcher)
-    {
-        dispatcher.Dispatch(new CheckCollisionAction { });
-        return Task.CompletedTask;
-    }
-}

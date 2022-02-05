@@ -1,5 +1,13 @@
 namespace BlazorTetris.Domain;
 
+public enum Direction : int
+{
+    Left = 37,
+    Up = 38,
+    Right = 39,
+    Down = 40
+}
+
 public record Square
 {
     public int Index { get; init; }
