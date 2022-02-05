@@ -4,9 +4,6 @@ namespace BlazorTetris.Store.Game;
 
 public static class Reducer
 {
-
-// todo: remove all methods with single ref
-
     public static GameState.State Squares(this GameState.State state)
     {
         var squares = Enumerable
