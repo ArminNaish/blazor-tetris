@@ -1,4 +1,5 @@
 using Fluxor;
+using BlazorTetris.Domain;
 
 namespace BlazorTetris.Store.Game;
 
@@ -9,11 +10,11 @@ public static class InitializeGameActionsReducer
     [ReducerMethod]
     public static GameState OnInitializeGame(GameState state, InitializeGameAction action)
     {
-        var gameState = new GameState.State()
+        var game = new Domain.Game()
             .Initialize()
-            .Squares()
+            .RandomTetromino()
             .Draw();
 
-        return state with { Game = gameState };
+        return state with { Game = game };
     }
 }

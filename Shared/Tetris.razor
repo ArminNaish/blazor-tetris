@@ -12,7 +12,7 @@ else
     <button id="start-button">start/pause</button>
 
     <div class="grid">
-        @foreach (var square in State.Value.Game.Squares!)
+        @foreach (var square in State.Value.Game.Board!)
         {
             <div class="@(square.IsTetromino ? "tetromino" : "") @(square.IsFrozen ? "frozen" : "")"></div>
         }

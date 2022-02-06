@@ -1,4 +1,5 @@
 using Fluxor;
+using BlazorTetris.Domain;
 
 namespace BlazorTetris.Store.Game;
 
@@ -11,13 +12,13 @@ public static class RenderGameActionsReducer
     {
         if (state.Game is null) throw new ArgumentNullException(nameof(state));
 
-        var gameState = state.Game
+        var game = state.Game
             .Undraw()
-            .MoveDown()
+            .Move(Direction.Down)
             .Draw()
             .CheckCollision();
   
-        return state with { Game = gameState };
+        return state with { Game = game };
     }
 }
 

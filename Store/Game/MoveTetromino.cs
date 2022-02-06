@@ -14,12 +14,12 @@ public static class MoveTetrominoActionsReducer
     {
         if (state.Game is null) throw new ArgumentNullException(nameof(state));
         
-        var gameState  = state.Game
+        var game = state.Game
             .Undraw()
             .Move(action.Direction)
             .Draw()
             .CheckCollision();
 
-        return state with { Game = gameState };
+        return state with { Game = game };
     }
 }
