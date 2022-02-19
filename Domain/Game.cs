@@ -1,20 +1,11 @@
 namespace BlazorTetris.Domain;
 
-public enum Direction : int
-{
-    Left = 37,
-    Up = 38,
-    Right = 39,
-    Down = 40
-}
-
 public record Game
 {
     public int Width => 10;
     public int DefaultPosition => 4;
     public List<Square> Board { get; init; } = new();
     public Tetromino CurrentTetromino { get; init; } = null!;
-    public int CurrentPosition { get; init; }
 
     public Game Initialize()
     {
@@ -31,32 +22,18 @@ public record Game
 
     public Game RandomTetromino()
     {
-        var tetrominos = new List<Tetromino>
-        {
-            LTetromino.Up(Width),
-            ZTetromino.Up(Width),
-            TTetromino.Up(Width),
-            OTetromino.Up(Width),
-            ITetromino.Up(Width),
-        };
-        var random = new Random();
-        var tetromino = tetrominos[random.Next(0, tetrominos.Count)];
-
         return this with
         {
-            CurrentPosition = DefaultPosition,
-            CurrentTetromino = tetromino,
+            CurrentTetromino = Tetromino.Random(Width, DefaultPosition),
         };
     }
 
     public Game Draw()
     {
-        var indizes = CurrentTetromino.Indizes(at: CurrentPosition);
         var board = Board
-            .Select(square =>
-                indizes.Contains(square.Index)
-                    ? square with { IsTetromino = true }
-                    : square)
+            .Select(square => CurrentTetromino.Contains(square.Index)
+                ? square with { IsTetromino = true }
+                : square)
             .ToList();
 
         return this with { Board = board };
@@ -64,14 +41,12 @@ public record Game
 
     public Game Undraw()
     {
-        var indizes = CurrentTetromino.Indizes(at: CurrentPosition);
         var board = Board
-            .Select(square =>
-                indizes.Contains(square.Index)
-                    ? square with { IsTetromino = false }
-                    : square)
+            .Select(square => CurrentTetromino.Contains(square.Index)
+                ? square with { IsTetromino = false }
+                : square)
             .ToList();
-        
+
         return this with { Board = board };
     }
 
@@ -87,11 +62,11 @@ public record Game
         };
     }
 
+    // TODO: fix bug: collision is only detected when moving down but not when moving left or right!!!
     public Game CheckCollision()
     {
-        var indizes = CurrentTetromino.Indizes(at: CurrentPosition);
         var collision = Board
-            .Where(square => indizes.Any(index => index + Width == square.Index))
+            .Where(square => CurrentTetromino.Indizes().Any(index => index + Width == square.Index))
             .Any(square => square.IsFrozen);
 
         if (!collision)
@@ -104,11 +79,9 @@ public record Game
 
     public Game FreezeTetromino()
     {
-        var indizes = CurrentTetromino.Indizes(at: CurrentPosition);
-
         var board = Board
             .Select(square =>
-                indizes.Contains(square.Index)
+                CurrentTetromino.Contains(square.Index)
                     ? square with { IsFrozen = true }
                     : square)
             .ToList();
@@ -118,37 +91,34 @@ public record Game
 
     private Game MoveLeft()
     {
-        var indizes = CurrentTetromino.Indizes(at: CurrentPosition);
-
-        // Check if tetromino touches the left border,
-        // if so do not update the current position.
-        if (indizes.Any(index => index % 10 == 0))
-            return this;
-
-        return this with { CurrentPosition = CurrentPosition - 1 };
+        return this with
+        {
+            CurrentTetromino = CurrentTetromino.MoveLeft()
+        };
     }
 
     private Game MoveRight()
     {
-        var nextPosition = CurrentPosition + 1;
-        var nextIndizes = CurrentTetromino.Indizes(at: nextPosition);
-
-        // Check if tetromino touches the left border,
-        // if so do not update the current position.
-        if (nextIndizes.Any(index => index % 10 == 0))
-            return this;
-
-        return this with { CurrentPosition = nextPosition };
+        return this with
+        {
+            CurrentTetromino = CurrentTetromino.MoveRight()
+        };
     }
 
     private Game MoveDown()
     {
-        return this with { CurrentPosition = CurrentPosition + Width };
+        return this with
+        {
+            CurrentTetromino = CurrentTetromino.MoveDown(Width)
+        };
     }
 
     private Game Rotate()
     {
-        throw new NotImplementedException();
+        return this with
+        {
+            CurrentTetromino = CurrentTetromino.Rotate()
+        };
     }
 }
 
@@ -159,57 +129,186 @@ public record Square
     public bool IsFrozen { get; init; }
 }
 
-public record Tetromino(int I1, int I2, int I3, int I4)
+public record Rotation
 {
+    public RotationDirection Direction { get; init; }
+    public int I1 { get; init; }
+    public int I2 { get; init; }
+    public int I3 { get; init; }
+    public int I4 { get; init; }
+    public static implicit operator int(Rotation rotation) => (int)rotation.Direction;
+}
 
-    public int[] Indizes(int at)
+public record Tetromino
+{
+    public List<Rotation> Rotations { get; init; } = new();
+    public Rotation Rotation { get; init; } = null!;
+    public int Position { get; init; }
+    public int Width { get; init; }
+
+    public static Tetromino Random(int width, int position)
     {
-        return new[] {
-            I1 + at,
-            I2 + at,
-            I3 + at,
-            I4 + at
+        var random = new Random();
+
+        var rotations = random.Next(0, 5) switch
+        {
+            (int)TetrominoType.L => Tetrominoes.L(width),
+            (int)TetrominoType.I => Tetrominoes.I(width),
+            (int)TetrominoType.O => Tetrominoes.O(width),
+            (int)TetrominoType.T => Tetrominoes.T(width),
+            (int)TetrominoType.Z => Tetrominoes.Z(width),
+            _ => throw new NotSupportedException($"Tetromino type is not supported.")
+        };
+
+        // todo: what is the default rotation? Up or random?
+        return new Tetromino
+        {
+            Rotations = rotations,
+            Rotation = rotations[(int)RotationDirection.Up],
+            Position = position,
+            Width = width
         };
     }
 
+    public Tetromino Rotate()
+    {
+        var current = (int)Rotation;
+        var next = (current + 1) <= 3 ? (current + 1) : 0;
+        return this with
+        {
+            Rotation = Rotations[next]
+        };
+    }
+
+    public Tetromino MoveLeft()
+    {
+        // Check if tetromino touches the left border,
+        // if so do not update the current position.
+        if (Indizes().Any(index => index % 10 == 0))
+            return this;
+
+        return this with { Position = Position - 1 };
+    }
+
+    public Tetromino MoveRight()
+    {
+        var nextPosition = Position + 1;
+        var nextIndizes = Indizes(nextPosition);
+
+        // Check if tetromino touches the left border,
+        // if so do not update the current position.
+        if (nextIndizes.Any(index => index % 10 == 0))
+            return this;
+
+        return this with { Position = nextPosition };
+    }
+
+    public Tetromino MoveDown(int width)
+    {
+        return this with { Position = Position + width };
+    }
+
+    public bool Contains(int index)
+    {
+        return Rotation.I1 + Position == index ||
+            Rotation.I2 + Position == index ||
+            Rotation.I3 + Position == index ||
+            Rotation.I4 + Position == index;
+    }
+
+    public IEnumerable<int> Indizes()
+    {
+        return Indizes(Position);
+    }
+
+    private IEnumerable<int> Indizes(int position)
+    {
+        yield return Rotation.I1 + position;
+        yield return Rotation.I2 + position;
+        yield return Rotation.I3 + position;
+        yield return Rotation.I4 + position;
+    }
 }
 
-public static class LTetromino
+public static class Tetrominoes
 {
-    public static Tetromino Up(int x) => new(1, x + 1, x * 2 + 1, 2);
-    public static Tetromino Right(int x) => new(x, x + 1, x + 2, x * 2 + 2);
-    public static Tetromino Down(int x) => new(1, x + 1, x * 2 + 1, x * 2);
-    public static Tetromino Left(int x) => new(x, x * 2, x * 2 + 1, x * 2 + 2);
+    public static List<Rotation> L(int width)
+    {
+        return new List<Rotation>
+        {
+            new Rotation{Direction = RotationDirection.Up,   I1 = 1, I2 =width + 1, I3 = width * 2 + 1, I4 = 2},
+            new Rotation{Direction = RotationDirection.Right,I1 = width,I2 = width + 1, I3 =width + 2, I4 =width * 2 + 2},
+            new Rotation{Direction = RotationDirection.Down, I1 = 1, I2 =width + 1,I3 = width * 2 + 1,I4 = width * 2},
+            new Rotation{Direction = RotationDirection.Left, I1 = width,I2 = width * 2,I3 = width * 2 + 1,I4 = width * 2 + 2}
+        };
+    }
+
+    public static List<Rotation> I(int width)
+    {
+        return new List<Rotation>
+        {
+            new Rotation{Direction = RotationDirection.Up,   I1 = 1, I2=width + 1,I3= width * 2 + 1,I4=width * 3 + 1},
+            new Rotation{Direction = RotationDirection.Right,I1 = width,I2= width + 1,I3= width + 2,I4=width + 3},
+            new Rotation{Direction = RotationDirection.Down, I1 = 1,I2= width + 1,I3= width * 2 + 1,I4=width * 3 + 1},
+            new Rotation{Direction = RotationDirection.Left, I1 = width,I2= width + 1, I3=width + 2,I4=width + 3}
+        };
+    }
+
+    public static List<Rotation> O(int width)
+    {
+        return new List<Rotation>
+        {
+            new Rotation{Direction = RotationDirection.Up,   I1 =0, I2 = 1,I3=width,I4 = width + 1},
+            new Rotation{Direction = RotationDirection.Right,I1 =0, I2 = 1,I3=width,I4 = width + 1},
+            new Rotation{Direction = RotationDirection.Down, I1 =0, I2 = 1,I3=width,I4 = width + 1},
+            new Rotation{Direction = RotationDirection.Left, I1 =0, I2 = 1,I3=width,I4 = width + 1},
+        };
+    }
+
+    public static List<Rotation> T(int width)
+    {
+        return new List<Rotation>
+        {
+            new Rotation{Direction = RotationDirection.Up,   I1=1,  I2 =width, I3=width + 1,I4 =  width + 2},
+            new Rotation{Direction = RotationDirection.Right,I1=1,  I2 =width + 1,I3= width + 2,I4 =  width * 2 + 1},
+            new Rotation{Direction = RotationDirection.Down, I1=width,  I2 =width + 1,I3= width + 2, I4 = width * 2 + 1},
+            new Rotation{Direction = RotationDirection.Left, I1=1,  I2 =width, I3=width + 1,I4 =  width * 2 + 1},
+        };
+    }
+
+    public static List<Rotation> Z(int width)
+    {
+        return new List<Rotation>
+        {
+            new Rotation{Direction = RotationDirection.Up,   I1=0,  I2 =width, I3=width + 1,I4 =  width * 2 + 1},
+            new Rotation{Direction = RotationDirection.Right,I1=width + 1, I2 = width + 2, I3=width * 2, I4 = width * 2 + 1},
+            new Rotation{Direction = RotationDirection.Down, I1=width + 1, I2 = width + 2, I3=width * 2, I4 = width * 2 + 1},
+            new Rotation{Direction = RotationDirection.Left, I1=width + 1, I2 = width + 2, I3=width * 2, I4 = width * 2 + 1},
+        };
+    }
 }
 
-public static class ITetromino
+public enum Direction
 {
-    public static Tetromino Up(int x) => new(1, x + 1, x * 2 + 1, x * 3 + 1);
-    public static Tetromino Right(int x) => new(x, x + 1, x + 2, x + 32);
-    public static Tetromino Down(int x) => new(1, x + 1, x * 2 + 1, x * 3 + 1);
-    public static Tetromino Left(int x) => new(x, x + 1, x + 2, x + 3);
+    Left = 37,
+    Up = 38,
+    Right = 39,
+    Down = 40
 }
 
-public static class OTetromino
+public enum TetrominoType
 {
-    public static Tetromino Up(int x) => new(0, 1, x, x + 1);
-    public static Tetromino Right(int x) => new(0, 1, x, x + 1);
-    public static Tetromino Down(int x) => new(0, 1, x, x + 1);
-    public static Tetromino Left(int x) => new(0, 1, x, x + 1);
+    L = 0,
+    Z = 1,
+    T = 2,
+    O = 3,
+    I = 4,
 }
 
-public static class TTetromino
+public enum RotationDirection
 {
-    public static Tetromino Up(int x) => new(1, x, x + 1, x + 2);
-    public static Tetromino Right(int x) => new(1, x + 1, x + 2, x * 2 + 1);
-    public static Tetromino Down(int x) => new(x, x + 1, x + 2, x * 2 + 1);
-    public static Tetromino Left(int x) => new(1, x, x + 1, x * 2 + 1);
-}
-
-public static class ZTetromino
-{
-    public static Tetromino Up(int x) => new(0, x, x + 1, x * 2 + 1);
-    public static Tetromino Right(int x) => new(x + 1, x + 2, x * 2, x * 2 + 1);
-    public static Tetromino Down(int x) => new(x + 1, x + 2, x * 2, x * 2 + 1);
-    public static Tetromino Left(int x) => new(x + 1, x + 2, x * 2, x * 2 + 1);
+    Up = 0,
+    Right = 1,
+    Down = 2,
+    Left = 3
 }
