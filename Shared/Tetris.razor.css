@@ -3,7 +3,7 @@
     width: 300px;
     display: flex;
     flex-wrap: wrap;
-    background-color: yellow;
+    background-color: gray;
 }
 
 .grid div {
@@ -12,5 +12,5 @@
 }
 
 .tetromino{
-    background-color: green;
+    background-color: yellow;
 }

@@ -62,7 +62,6 @@ public record Game
         };
     }
 
-    // TODO: fix bug: collision is only detected when moving down but not when moving left or right!!!
     public Game CheckCollision()
     {
         var collision = Board
@@ -91,6 +90,13 @@ public record Game
 
     private Game MoveLeft()
     {
+        var collision = Board
+            .Where(square => CurrentTetromino.Indizes().Any(index => index - 1 == square.Index))
+            .Any(square => square.IsFrozen);
+
+        if (collision)
+            return this;
+
         return this with
         {
             CurrentTetromino = CurrentTetromino.MoveLeft()
@@ -99,6 +105,13 @@ public record Game
 
     private Game MoveRight()
     {
+        var collision = Board
+            .Where(square => CurrentTetromino.Indizes().Any(index => index + 1 == square.Index))
+            .Any(square => square.IsFrozen);
+
+        if (collision)
+            return this;
+
         return this with
         {
             CurrentTetromino = CurrentTetromino.MoveRight()
@@ -282,7 +295,7 @@ public static class Tetrominoes
         {
             new Rotation{Direction = RotationDirection.Up,   I1=0,  I2 =width, I3=width + 1,I4 =  width * 2 + 1},
             new Rotation{Direction = RotationDirection.Right,I1=width + 1, I2 = width + 2, I3=width * 2, I4 = width * 2 + 1},
-            new Rotation{Direction = RotationDirection.Down, I1=width + 1, I2 = width + 2, I3=width * 2, I4 = width * 2 + 1},
+            new Rotation{Direction = RotationDirection.Down, I1=0, I2 = width, I3=width +1, I4 = width * 2 + 1},
             new Rotation{Direction = RotationDirection.Left, I1=width + 1, I2 = width + 2, I3=width * 2, I4 = width * 2 + 1},
         };
     }
