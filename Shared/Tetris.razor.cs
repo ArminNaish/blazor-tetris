@@ -44,16 +44,25 @@ public partial class Tetris : IDisposable
         await base.OnAfterRenderAsync(firstRender);
         if (firstRender)
         {
-            await TetrisJs.AddKeyUpEventListener(OnKeyUp);
+            await TetrisJs.AddKeyPressEventListener(OnKeyPress);
         }
     }
 
-    public void OnKeyUp(int key)
+    public void OnKeyPress(string key)
     {
         if (State.Value.Game is null) return;
-        if (!Enum.IsDefined(typeof(Direction), key)) return;
 
-        Dispatcher.Dispatch(new MoveTetrominoAction { Direction = (Direction)key });
+        Direction? direction = key switch{
+            "ArrowUp" => Direction.Up,
+            "ArrowDown" => Direction.Down,
+            "ArrowLeft" => Direction.Left,
+            "ArrowRight" => Direction.Right,
+            _ => null    
+        };
+
+        if (direction is null) return;
+
+        Dispatcher.Dispatch(new MoveTetrominoAction { Direction = direction.Value });
     }
 
     protected override void Dispose(bool disposing)

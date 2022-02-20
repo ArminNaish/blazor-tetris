@@ -7,7 +7,7 @@ public class TetrisJs : ITetrisJs, IAsyncDisposable
     private readonly DotNetObjectReference<TetrisJs>? _reference;
     private readonly Task<IJSObjectReference> _importTask;
     private IJSObjectReference? _module;
-    private Action<int>? _onKeyUp;
+    private Action<string>? _onKeyPress;
 
     public TetrisJs(IJSRuntime js)
     {
@@ -15,19 +15,19 @@ public class TetrisJs : ITetrisJs, IAsyncDisposable
         _importTask = js.InvokeAsync<IJSObjectReference>("import", "./js/tetris.js").AsTask();
     }
 
-    public async Task AddKeyUpEventListener(Action<int> onKeyUp)
+    public async Task AddKeyPressEventListener(Action<string> onKeyPress)
     {
         if (_module is null)
             _module = await _importTask;
 
-        _onKeyUp = onKeyUp;
-        await _module.InvokeVoidAsync("addKeyUpEventListener", _reference);
+        _onKeyPress = onKeyPress;
+        await _module.InvokeVoidAsync("addKeyPressEventListener", _reference);
     }
 
     [JSInvokable]
-    public void OnKeyUp(int key)
+    public void OnKeyPress(string key)
     {
-        _onKeyUp?.Invoke(key);
+        _onKeyPress?.Invoke(key);
     } 
 
     public async ValueTask DisposeAsync()
