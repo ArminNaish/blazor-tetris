@@ -12,13 +12,10 @@ public static class RenderGameActionsReducer
     {
         if (state.Game is null) throw new ArgumentNullException(nameof(state));
 
-        var game = state.Game
-            .Undraw()
-            .Move(Direction.Down)
-            .Draw()
-            .CheckCollision();
-  
-        return state with { Game = game };
+        return state with 
+        { 
+            Game = state.Game.Move(Direction.Down)
+        };
     }
 }
 

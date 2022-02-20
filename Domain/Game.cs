@@ -2,33 +2,50 @@ namespace BlazorTetris.Domain;
 
 public record Game
 {
-    public int Width => 10;
-    public int DefaultPosition => 4;
+    public static int Width => 10;
+    public static int DefaultPosition => 4;
+
     public List<Square> Board { get; init; } = new();
     public Tetromino CurrentTetromino { get; init; } = null!;
 
-    public Game Initialize()
+    public static Game NewGame()
     {
+        var currentTetromino = Tetromino.Random(Width, DefaultPosition);
+
         var board = Enumerable
             .Range(0, 210)
-            .Select(index => new Square { Index = index, IsFrozen = index >= 200 })
+            .Select(index => new Square
+            {
+                Index = index,
+                IsFrozen = index >= 200,
+                IsTetromino = currentTetromino.Contains(index)
+            })
             .ToList();
 
-        return this with
+        return new Game
         {
-            Board = board
+            Board = board,
+            CurrentTetromino = currentTetromino
         };
     }
 
-    public Game RandomTetromino()
+    public Game Move(Direction direction)
     {
-        return this with
+        var game = Undraw();
+
+        game = direction switch
         {
-            CurrentTetromino = Tetromino.Random(Width, DefaultPosition),
+            Direction.Left => game.MoveLeft(),
+            Direction.Up => game.Rotate(),
+            Direction.Right => game.MoveRight(),
+            Direction.Down => game.MoveDown(),
+            _ => throw new NotSupportedException("Direction is not supported.")
         };
+
+        return game.Draw();
     }
 
-    public Game Draw()
+    private Game Draw()
     {
         var board = Board
             .Select(square => CurrentTetromino.Contains(square.Index)
@@ -39,7 +56,7 @@ public record Game
         return this with { Board = board };
     }
 
-    public Game Undraw()
+    private Game Undraw()
     {
         var board = Board
             .Select(square => CurrentTetromino.Contains(square.Index)
@@ -50,43 +67,6 @@ public record Game
         return this with { Board = board };
     }
 
-    public Game Move(Direction direction)
-    {
-        return direction switch
-        {
-            Direction.Left => MoveLeft(),
-            Direction.Up => Rotate(),
-            Direction.Right => MoveRight(),
-            Direction.Down => MoveDown(),
-            _ => throw new NotSupportedException("Direction is not supported.")
-        };
-    }
-
-    public Game CheckCollision()
-    {
-        var collision = Board
-            .Where(square => CurrentTetromino.Indizes().Any(index => index + Width == square.Index))
-            .Any(square => square.IsFrozen);
-
-        if (!collision)
-            return this;
-
-        return FreezeTetromino()
-            .RandomTetromino()
-            .Draw();
-    }
-
-    public Game FreezeTetromino()
-    {
-        var board = Board
-            .Select(square =>
-                CurrentTetromino.Contains(square.Index)
-                    ? square with { IsFrozen = true }
-                    : square)
-            .ToList();
-
-        return this with { Board = board };
-    }
 
     private Game MoveLeft()
     {
@@ -120,6 +100,17 @@ public record Game
 
     private Game MoveDown()
     {
+        var collisionAhead = Board
+            .Where(square => CurrentTetromino.Indizes().Any(index => index + Width == square.Index))
+            .Any(square => square.IsFrozen);
+
+        if (collisionAhead)
+        {
+            return Freeze()
+            .Draw()// draw frozen state of current tetromino before it gets replaced
+            .RandomTetromino();
+        }
+
         return this with
         {
             CurrentTetromino = CurrentTetromino.MoveDown(Width)
@@ -131,6 +122,29 @@ public record Game
         return this with
         {
             CurrentTetromino = CurrentTetromino.Rotate()
+        };
+    }
+
+    private Game RandomTetromino()
+    {
+        return this with
+        {
+            CurrentTetromino = Tetromino.Random(Width, DefaultPosition)
+        };
+    }
+
+    private Game Freeze()
+    {
+        var board = Board
+            .Select(square =>
+                CurrentTetromino.Contains(square.Index)
+                    ? square with { IsFrozen = true }
+                    : square)
+            .ToList();
+
+        return this with
+        {
+            Board = board,
         };
     }
 }
@@ -173,11 +187,10 @@ public record Tetromino
             _ => throw new NotSupportedException($"Tetromino type is not supported.")
         };
 
-        // todo: what is the default rotation? Up or random?
         return new Tetromino
         {
             Rotations = rotations,
-            Rotation = rotations[(int)RotationDirection.Up],
+            Rotation = rotations[random.Next(0,4)],
             Position = position,
             Width = width
         };
